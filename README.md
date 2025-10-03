@@ -500,7 +500,7 @@ MIT License
 
 ## Links
 
-- **Devin Session**: https://app.devin.ai/sessions/18049a2e99764e3582fe116391e62cc9
+
 - **GitHub Repository**: https://github.com/gregnatkatz/mcpdashboard
 - **Azure APIM Documentation**: https://learn.microsoft.com/en-us/azure/api-management/
 - **MCP Specification**: https://modelcontextprotocol.io/

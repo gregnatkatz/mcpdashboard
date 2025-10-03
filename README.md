@@ -4,7 +4,7 @@ A comprehensive Model Context Protocol (MCP) dashboard for monitoring and managi
 
 ## Features
 
-- **Service Monitoring**: Real-time monitoring of 8 MCP services with detailed metrics
+- **Service Monitoring**: Real-time monitoring of 9 MCP services with detailed metrics (including Weather MCP with real data from 57 test queries)
 - **Resource Utilization Tracking**: CPU, memory, and network usage visualization
 - **Agent Analytics**: Pie and line charts showing agent distribution and activity over time
 - **MCP Tester**: Interactive testing interface with prettified weather responses and icons
@@ -312,7 +312,7 @@ The built files will be in the `dist` directory.
 
 ## Part 4: Running the Weather MCP Tests
 
-The repository includes a test script that runs 213 diverse weather queries against the APIM Weather MCP endpoint.
+The repository includes a test script that runs 57 diverse weather queries against the APIM Weather MCP endpoint.
 
 ### Step 1: Set Environment Variable
 
@@ -333,11 +333,11 @@ pip install httpx
 ### Step 3: Run the Tests
 
 ```bash
-python test_weather_213.py
+python test_weather_57.py
 ```
 
 The script will:
-- Run 213 diverse weather queries
+- Run 57 diverse weather queries
 - Measure latency for each request
 - Calculate success rate
 - Save results to `/tmp/mcp_metrics.json`
@@ -477,7 +477,7 @@ mcpdashboard/
 │   └── vite.config.ts
 ├── docs/
 │   └── screenshots/         # Dashboard screenshots
-├── test_weather_213.py      # Weather MCP test script
+├── test_weather_57.py       # Weather MCP test script (57 queries)
 ├── updated-apim-policy.xml  # APIM policy configuration
 └── README.md
 ```

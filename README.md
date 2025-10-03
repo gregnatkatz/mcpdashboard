@@ -314,17 +314,15 @@ The built files will be in the `dist` directory.
 
 The repository includes a test script that runs 213 diverse weather queries against the APIM Weather MCP endpoint.
 
-### Step 1: Update Test Script Configuration
+### Step 1: Set Environment Variable
 
-Edit `test_weather_213.py` and update the APIM URL and subscription key:
+Set your APIM subscription key as an environment variable:
 
-```python
-url = "https://{your-apim-instance}.azure-api.net/mcp"
-headers = {
-    "Content-Type": "application/json",
-    "Ocp-Apim-Subscription-Key": "{your-subscription-key}"
-}
+```bash
+export APIM_SUBSCRIPTION_KEY="your-subscription-key-here"
 ```
+
+The test script will use this environment variable to authenticate with APIM.
 
 ### Step 2: Install Test Dependencies
 

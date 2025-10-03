@@ -1,14 +1,18 @@
 import httpx
 import json
 import asyncio
+import os
 from datetime import datetime
 import random
 
 async def test_weather_query(client, query, query_num):
-    url = "https://apim2025.azure-api.net/mcp"
+    subscription_key = os.getenv("APIM_SUBSCRIPTION_KEY", "")
+    if not subscription_key:
+        raise ValueError("APIM_SUBSCRIPTION_KEY environment variable must be set")
+    
+    url = f"https://apim2025.azure-api.net/mcp?subscription-key={subscription_key}"
     headers = {
-        "Content-Type": "application/json",
-        "Ocp-Apim-Subscription-Key": "6cec5f6ff0874757b4d73b3c583babc9"
+        "Content-Type": "application/json"
     }
     
     payload = {

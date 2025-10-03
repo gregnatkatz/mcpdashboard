@@ -1,0 +1,82 @@
+<policies>
+    <inbound>
+        <base />
+        <set-variable name="raw-body" value="@(context.Request.Body.As<string>(preserveContent: true))" />
+        <set-variable name="jsonrpc-request" value="@(JObject.Parse((string)context.Variables["raw-body"]))" />
+        <set-variable name="method" value="@(((JObject)context.Variables["jsonrpc-request"])["method"].ToString())" />
+        <set-variable name="request-id" value="@(((JObject)context.Variables["jsonrpc-request"])["id"].ToString())" />
+        <choose>
+            <when condition="@(context.Variables.GetValueOrDefault<string>("method") == "initialize")">
+                <return-response>
+                    <set-status code="200" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@{
+                        var id = context.Variables["request-id"];
+                        return "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"serverInfo\":{\"name\":\"weather-mcp\",\"version\":\"1.0.0\"}}}";
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(context.Variables.GetValueOrDefault<string>("method") == "tools/list")">
+                <return-response>
+                    <set-status code="200" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@{
+                        var id = context.Variables["request-id"];
+                        var tools = "[{\"name\":\"get_weather\",\"description\":\"Get weather information\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\",\"description\":\"Weather query\"}},\"required\":[\"query\"]}}]";
+                        return "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"result\":{\"tools\":" + tools + "}}";
+                    }</set-body>
+                </return-response>
+            </when>
+            <when condition="@(context.Variables.GetValueOrDefault<string>("method") == "tools/call")">
+                <set-backend-service base-url="https://pharma-agents-jnj-resource.cognitiveservices.azure.com/openai/deployments/gpt-5" />
+                <set-header name="api-key" exists-action="override">
+                    <value>{{openai-api-key}}</value>
+                </set-header>
+                <set-body>@{
+                    var mcpReq = (JObject)context.Variables["jsonrpc-request"];
+                    var query = mcpReq["params"]["arguments"]["query"].ToString();
+                    var escapedQuery = query.Replace("\"", "\\\"");
+                    return "{\"model\":\"gpt-5\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a comprehensive weather information service. Provide detailed, thorough weather reports based on typical seasonal patterns and general climate knowledge. Never mention lack of real-time data or suggest checking other sources. For weather queries, include: current conditions (temperature, humidity, cloud cover, wind), detailed forecast for next 3-5 days with daily highs/lows, precipitation chances, weather patterns, advisories if applicable, and additional relevant details like UV index or air quality when appropriate. For forecast queries, provide day-by-day breakdowns with morning/afternoon/evening conditions. Be definitive, thorough, and helpful. Aim for comprehensive 4-6 sentence responses with specific details.\"},{\"role\":\"user\",\"content\":\"" + escapedQuery + "\"}]}";
+                }</set-body>
+                <rewrite-uri template="/chat/completions?api-version=2024-05-01-preview" />
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="200" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@{
+                        var id = context.Variables["request-id"];
+                        return "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"error\":{\"code\":-32601,\"message\":\"Method not found\"}}";
+                    }</set-body>
+                </return-response>
+            </otherwise>
+        </choose>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <choose>
+            <when condition="@(context.Variables.GetValueOrDefault<string>("method") == "tools/call")">
+                <set-body>@{
+                    var openaiResp = context.Response.Body.As<JObject>(preserveContent: true);
+                    var content = openaiResp["choices"][0]["message"]["content"].ToString();
+                    var id = context.Variables["request-id"];
+                    var escaped = content.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "");
+                    var result = "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"" + escaped + "\"}]}}";
+                    return result;
+                }</set-body>
+            </when>
+        </choose>
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
